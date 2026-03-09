@@ -71,3 +71,39 @@ print(f"\nPesos de atencao (decoder -> encoder):")
 print(np.round(cross_weights[0], 4))
 print(f"\nSoma de cada linha (deve ser 1.0):")
 print(np.round(cross_weights[0].sum(axis=-1), 6))
+
+
+vocab_size = 10000
+EOS_IDX = 9999
+
+vocab = {
+    0: "<START>",
+    EOS_IDX: "<EOS>",
+}
+
+
+def generate_next_token(current_sequence, encoder_out):
+    step = len(current_sequence)
+    context_bias = encoder_out[0].mean()
+    logits = np.random.randn(vocab_size) + float(context_bias) * 0.01
+    logits[EOS_IDX] += step * 0.9
+    probs = softmax(logits)
+    return probs
+
+
+sequence = ["<START>"]
+
+print("\n--- Loop de Inferencia Auto-Regressivo ---")
+
+while True:
+    probs = generate_next_token(sequence, encoder_out)
+    next_idx = int(np.argmax(probs))
+    next_token = vocab.get(next_idx, f"tok_{next_idx}")
+    sequence.append(next_token)
+
+    print(f"Passo {len(sequence) - 1}: '{next_token}' (idx={next_idx}, p={probs[next_idx]:.4f})")
+
+    if next_token == "<EOS>":
+        break
+
+print(f"\nFrase gerada: {' '.join(sequence)}")

@@ -6,7 +6,7 @@ Implementação dos blocos matemáticos centrais do Decoder de um Transformer, c
 
 | Arquivo | Descrição |
 |---|---|
-| `decoder.py` | Mascara causal (Look-Ahead Mask) e Cross-Attention |
+| `decoder.py` | Mascara causal, Cross-Attention e loop auto-regressivo |
 
 ## Máscara Causal (Look-Ahead Mask)
 
@@ -38,6 +38,15 @@ decoder_state  : [1,  4, 512]   (traducao parcial - 4 tokens)
 A função `cross_attention(encoder_out, decoder_state)` projeta cada tensor com matrizes de pesos `W_Q`, `W_K` e `W_V` de dimensão `[512, 64]` e aplica o Scaled Dot-Product Attention sem mascara causal, pois o Decoder deve acessar toda a frase do Encoder.
 
 A saída tem forma `[1, 4, 64]`: para cada token gerado pelo Decoder, um vetor de contexto condensado a partir dos 10 tokens do Encoder.
+
+## Loop de Inferencia Auto-Regressivo
+
+Na geração de texto, o modelo produz um token por vez, realimentando sua própria saída como entrada do próximo passo. A função `generate_next_token(current_sequence, encoder_out)` simula esse comportamento: recebe a sequência gerada até o momento e o contexto do Encoder, e retorna uma distribuição de probabilidades sobre um vocabulário fictício de 10.000 tokens.
+
+A cada iteração do loop `while`:
+- `argmax` seleciona o token com maior probabilidade
+- o token é adicionado à sequência
+- se o token for `<EOS>`, o loop encerra e a frase final é impressa
 
 ## Como executar
 
