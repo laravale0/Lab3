@@ -36,3 +36,38 @@ print("\nPesos de atencao apos mascaramento:")
 print(np.round(attention_weights, 4))
 print("\nSoma de cada linha (deve ser 1.0):")
 print(np.round(attention_weights.sum(axis=-1), 6))
+
+
+d_model = 512
+d_k_cross = 64
+
+encoder_out = np.random.randn(1, 10, d_model)
+decoder_state = np.random.randn(1, 4, d_model)
+
+W_Q = np.random.randn(d_model, d_k_cross)
+W_K = np.random.randn(d_model, d_k_cross)
+W_V = np.random.randn(d_model, d_k_cross)
+
+
+def cross_attention(encoder_out, decoder_state):
+    Q = decoder_state @ W_Q
+    K = encoder_out @ W_K
+    V = encoder_out @ W_V
+
+    scores = (Q @ K.transpose(0, 2, 1)) / np.sqrt(d_k_cross)
+    weights = softmax(scores)
+    output = weights @ V
+
+    return output, weights
+
+
+cross_out, cross_weights = cross_attention(encoder_out, decoder_state)
+
+print("\n--- Cross-Attention ---")
+print(f"encoder_out: {encoder_out.shape}")
+print(f"decoder_state: {decoder_state.shape}")
+print(f"\nForma da saida: {cross_out.shape}")
+print(f"\nPesos de atencao (decoder -> encoder):")
+print(np.round(cross_weights[0], 4))
+print(f"\nSoma de cada linha (deve ser 1.0):")
+print(np.round(cross_weights[0].sum(axis=-1), 6))

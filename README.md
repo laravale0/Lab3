@@ -6,7 +6,7 @@ Implementação dos blocos matemáticos centrais do Decoder de um Transformer, c
 
 | Arquivo | Descrição |
 |---|---|
-| `decoder.py` | Mascara causal (Look-Ahead Mask) |
+| `decoder.py` | Mascara causal (Look-Ahead Mask) e Cross-Attention |
 
 ## Máscara Causal (Look-Ahead Mask)
 
@@ -25,6 +25,19 @@ As matrizes Q e K foram geradas com distribuições intencionalmente distintas (
 - **K**: distribuição Beta (a=0.4, b=3.0) — limitada em [0,1], fortemente assimétrica próxima de 0
 
 Apos o Softmax, as posições mascaradas resultam em probabilidade `0.0`, confirmando que o modelo não acessa tokens futuros.
+
+## Cross-Attention (Ponte Encoder-Decoder)
+
+No Cross-Attention, o Decoder usa seu estado atual para consultar a saída do Encoder. As projeções vêm de fontes distintas: Q deriva do Decoder, enquanto K e V derivam do Encoder.
+
+```
+encoder_output : [1, 10, 512]   (frase francesa - 10 tokens)
+decoder_state  : [1,  4, 512]   (traducao parcial - 4 tokens)
+```
+
+A função `cross_attention(encoder_out, decoder_state)` projeta cada tensor com matrizes de pesos `W_Q`, `W_K` e `W_V` de dimensão `[512, 64]` e aplica o Scaled Dot-Product Attention sem mascara causal, pois o Decoder deve acessar toda a frase do Encoder.
+
+A saída tem forma `[1, 4, 64]`: para cada token gerado pelo Decoder, um vetor de contexto condensado a partir dos 10 tokens do Encoder.
 
 ## Como executar
 
